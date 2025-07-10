@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DaMinko Phone Store</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #f4f4f4;
+    }
+
+    header {
+      background: #111;
+      color: white;
+      padding: 0.6rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 999;
+    }
+
+    .top-bar {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .filters {
+      display: flex;
+      gap: 1rem;
+      margin-top: 0.7rem;
+      width: 100%;
+      justify-content: center;
+    }
+
+    .filters input,
+    .filters select {
+      padding: 0.6rem;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      width: 200px;
+    }
+
+    .cart-toggle {
+      background: #fff;
+      color: #111;
+      border: none;
+      padding: 0.4rem 0.8rem;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 2rem;
+      padding: 2rem;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .product {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      padding: 1rem;
+      text-align: center;
+    }
+
+    .product img {
+      width: 100%;
+      height: 250px;
+      object-fit: cover;
+      border-radius: 10px;
+    }
+
+    .btn {
+      background: #111;
+      color: white;
+      border: none;
+      padding: 0.7rem 1.2rem;
+      margin-top: 1rem;
+      cursor: pointer;
+      border-radius: 5px;
+      transition: background 0.3s ease;
+    }
+
+    .btn:hover {
+      background: #444;
+    }
+
+    .cart-modal,
+    .confirmation,
+    .checkout-modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .cart-box,
+    .confirmation-box,
+    .checkout-box {
+      background: white;
+      padding: 2rem;
+      border-radius: 10px;
+      width: 350px;
+      max-height: 80vh;
+      overflow-y: auto;
+      position: relative;
+      text-align: center;
+    }
+
+    .cart-box h2,
+    .confirmation-box h2,
+    .checkout-box h2 {
+      margin-top: 0;
+    }
+
+    .cart-item {
+      border-bottom: 1px solid #ccc;
+      padding: 0.5rem 0;
+    }
+
+    .cart-item span {
+      display: block;
+    }
+
+    .cart-total {
+      font-weight: bold;
+      margin-top: 1rem;
+    }
+
+    .remove-btn {
+      background: crimson;
+      color: white;
+      padding: 0.3rem 0.5rem;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      margin-top: 5px;
+    }
+
+    .close-cart-btn,
+    .close-checkout-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #999;
+      color: white;
+      border: none;
+      padding: 0.3rem 0.6rem;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    .checkout-btn {
+      background: green;
+      margin-top: 1rem;
+    }
+
+    .checkout-box input {
+      width: 100%;
+      padding: 0.6rem;
+      margin: 0.5rem 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="top-bar">
+    <h2>DaMinko Phone Store</h2>
+    <button class="cart-toggle" onclick="toggleCart()">🛒 Cart (<span id="cartCount">0</span>)</button>
+  </div>
+  <div class="filters">
+    <input type="text" id="searchInput" placeholder="Search phones..." onkeyup="filterProducts()" />
+    <select id="categoryFilter" onchange="filterProducts()">
+      <option value="all">All Categories</option>
+      <option value="android">Android</option>
+      <option value="apple">Apple</option>
+      <option value="google">Google</option>
+    </select>
+  </div>
+</header>
+
+<div class="product-grid" id="productGrid"></div>
+
+<!-- Cart Modal -->
+<div class="cart-modal" id="cartModal" onclick="closeCart()">
+  <div class="cart-box" onclick="event.stopPropagation()">
+    <button class="close-cart-btn" onclick="closeCart()">✖</button>
+    <h2>Your Cart</h2>
+    <div id="cartItems"></div>
+    <div class="cart-total" id="cartTotal">Total: R0</div>
+    <button class="btn checkout-btn" onclick="openCheckout()">Checkout</button>
+  </div>
+</div>
+
+<!-- Checkout Modal -->
+<div class="checkout-modal" id="checkoutModal" onclick="closeCheckout()">
+  <div class="checkout-box" onclick="event.stopPropagation()">
+    <button class="close-checkout-btn" onclick="closeCheckout()">✖</button>
+    <h2>Confirm Your Order</h2>
+    <input type="text" id="name" placeholder="Full Name">
+    <input type="text" id="phone" placeholder="Phone Number">
+    <input type="text" id="address" placeholder="Delivery Address">
+    <button class="btn" onclick="submitOrder()">Place Order</button>
+  </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="confirmation" id="confirmation">
+  <div class="confirmation-box">
+    <h2>🎉 Thank You for Your Order!</h2>
+    <p>Your order has been received. We'll contact you shortly.</p>
+    <button class="btn" onclick="continueShopping()">Continue Shopping</button>
+  </div>
+</div>
+
+<script>
+  const products = [
+    { name: "Galaxy S24 Ultra", price: 20000, image: "Galaxy S24 Ultra.jpg", category: "android" },
+    { name: "iPhone 15 Pro Max", price: 25000, image: "iPhone 15 Pro Max.png", category: "apple" },
+    { name: "Pixel 8 Pro", price: 18000, image: "Pixel 8 Pro.jpg", category: "google" },
+    { name: "Samsung A34 5G", price: 8000, image: "Samsung A34 5G.jpg", category: "android" },
+    { name: "iPhone SE 2022", price: 10000, image: "iPhone SE 2022.jpg", category: "apple" },
+    { name: "Pixel 7a", price: 12000, image: "Pixel 7a.jpg", category: "google" }
+  ];
+
+  let cart = [];
+
+  function displayProducts() {
+    const grid = document.getElementById("productGrid");
+    grid.innerHTML = "";
+
+    const searchValue = document.getElementById("searchInput").value.toLowerCase();
+    const selectedCategory = document.getElementById("categoryFilter").value;
+
+    products.forEach(product => {
+      const matchesSearch = product.name.toLowerCase().includes(searchValue);
+      const matchesCategory = selectedCategory === "all" || product.category === selectedCategory;
+      const isInCart = cart.some(item => item.name === product.name);
+
+      if (matchesSearch && matchesCategory) {
+        const card = document.createElement("div");
+        card.className = "product";
+        card.innerHTML = `
+          <img src="${product.image}" alt="${product.name}" />
+          <h3>${product.name}</h3>
+          <p>R${product.price.toLocaleString()}</p>
+          <button class="btn" id="btn-${product.name.replace(/\s+/g, '')}" onclick="toggleCartItem('${product.name}')">${isInCart ? 'Remove from Cart' : 'Add to Cart'}</button>
+        `;
+        grid.appendChild(card);
+      }
+    });
+  }
+
+  function filterProducts() {
+    displayProducts();
+  }
+
+  function toggleCartItem(productName) {
+    const index = cart.findIndex(item => item.name === productName);
+    if (index > -1) {
+      cart.splice(index, 1);
+    } else {
+      const product = products.find(p => p.name === productName);
+      cart.push(product);
+    }
+    updateCart();
+    displayProducts();
+  }
+
+  function updateCart() {
+    const items = document.getElementById("cartItems");
+    items.innerHTML = "";
+    let total = 0;
+
+    cart.forEach((item, index) => {
+      total += item.price;
+      items.innerHTML += `
+        <div class="cart-item">
+          <span>${item.name}</span>
+          <span>R${item.price.toLocaleString()}</span>
+          <button class="remove-btn" onclick="removeFromCart(${index})">Remove</button>
+        </div>
+      `;
+    });
+
+    document.getElementById("cartTotal").innerText = `Total: R${total.toLocaleString()}`;
+    document.getElementById("cartCount").innerText = cart.length;
+  }
+
+  function removeFromCart(index) {
+    cart.splice(index, 1);
+    updateCart();
+    displayProducts();
+  }
+
+  function toggleCart() {
+    document.getElementById("cartModal").style.display = "flex";
+  }
+
+  function closeCart() {
+    document.getElementById("cartModal").style.display = "none";
+  }
+
+  function openCheckout() {
+    if (cart.length === 0) return alert("Your cart is empty!");
+    closeCart();
+    document.getElementById("checkoutModal").style.display = "flex";
+  }
+
+  function closeCheckout() {
+    document.getElementById("checkoutModal").style.display = "none";
+  }
+
+  function submitOrder() {
+    const name = document.getElementById("name").value.trim();
+    const phone = document.getElementById("phone").value.trim();
+    const address = document.getElementById("address").value.trim();
+
+    if (!name || !phone || !address) return alert("Please fill in all fields");
+    if (!/^[0-9]{10,15}$/.test(phone)) return alert("Enter a valid phone number (10-15 digits)");
+
+    fetch("http://localhost:3000/order", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        name,
+        phone,
+        address,
+        cart
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        cart = [];
+        updateCart();
+        closeCheckout();
+        document.getElementById("confirmation").style.display = "flex";
+      } else {
+        alert("Something went wrong: " + data.message);
+      }
+    })
+    .catch(error => {
+      console.error("Error:", error);
+      alert("Failed to submit order. Please try again later.");
+    });
+  }
+
+  function continueShopping() {
+    document.getElementById("confirmation").style.display = "none";
+    displayProducts();
+  }
+
+  displayProducts();
+</script>
+
+</body>
+</html>
