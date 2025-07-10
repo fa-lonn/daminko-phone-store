@@ -5,11 +5,13 @@ const nodemailer = require('nodemailer');
 const cors = require('cors');
 
 const app = express();
-const PORT = 3000; // You can change this if needed
+const PORT = process.env.PORT || 3000;
 
 // Middleware
-app.use(cors());
-app.use(express.json()); // Allows us to read JSON data from requests
+app.use(cors({
+  origin: 'https://daminko-phone-store-front.onrender.com'
+}));
+app.use(express.json());
 
 // Route to receive orders from the frontend
 app.post('/order', async (req, res) => {
@@ -21,18 +23,18 @@ app.post('/order', async (req, res) => {
 
   const formattedCart = cart.map(item => `${item.name} - R${item.price}`).join('\n');
 
-  // Email transporter setup (using Gmail)
+  // Email transporter setup using environment variables
   const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-      user: 'daminkocreations@gmail.com',      // ⬅️ Replace this with your Gmail
-      pass: 'obfkxyqkrujxcdkk'          // ⬅️ Use Gmail app password, NOT your regular password
+      user: process.env.EMAIL_USER, // ✅ pulled from Render environment variables
+      pass: process.env.EMAIL_PASS  // ✅ pulled from Render environment variables
     }
   });
 
   const mailOptions = {
-    from: 'daminkocreations@gmail.com',        // ⬅️ Same as above
-    to: 'daminkocreations@gmail.com',          // ⬅️ Can be the same or a different destination
+    from: process.env.EMAIL_USER,
+    to: process.env.EMAIL_USER,
     subject: '📦 New Order from DaMinko Store',
     text: `
 New Order Received:
