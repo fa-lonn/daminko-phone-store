@@ -15,9 +15,10 @@ app.use(express.json());
 
 // Route to receive orders from the frontend
 app.post('/order', async (req, res) => {
-  const { name, phone, address, cart } = req.body;
+  const { name, phone, address, email, cart } = req.body;
 
-  if (!name || !phone || !address || !Array.isArray(cart)) {
+  // Basic validation
+  if (!name || !phone || !address || !email || !Array.isArray(cart)) {
     return res.status(400).json({ success: false, message: 'Invalid order data' });
   }
 
@@ -27,11 +28,12 @@ app.post('/order', async (req, res) => {
   const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-      user: process.env.EMAIL_USER, // ✅ pulled from Render environment variables
-      pass: process.env.EMAIL_PASS  // ✅ pulled from Render environment variables
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS
     }
   });
 
+  // Email options
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: process.env.EMAIL_USER,
@@ -40,6 +42,7 @@ app.post('/order', async (req, res) => {
 New Order Received:
 
 Name: ${name}
+Email: ${email}
 Phone: ${phone}
 Address: ${address}
 
@@ -48,6 +51,7 @@ ${formattedCart}
     `
   };
 
+  // Send the email
   try {
     await transporter.sendMail(mailOptions);
     console.log("✅ Order email sent!");

@@ -28,6 +28,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
     }
 
     .filters {
@@ -36,6 +37,7 @@
       margin-top: 0.7rem;
       width: 100%;
       justify-content: center;
+      flex-wrap: wrap;
     }
 
     .filters input,
@@ -95,6 +97,24 @@
       background: #444;
     }
 
+    .btn-remove {
+      background: crimson;
+    }
+
+    .btn-remove:hover {
+      background: darkred;
+    }
+
+    .remove-btn {
+      background: crimson;
+      color: white;
+      padding: 0.3rem 0.5rem;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      margin-top: 5px;
+    }
+
     .cart-modal,
     .confirmation,
     .checkout-modal {
@@ -115,8 +135,9 @@
       background: white;
       padding: 2rem;
       border-radius: 10px;
-      width: 350px;
-      max-height: 80vh;
+      width: 90%;
+      max-width: 400px;
+      max-height: 90vh;
       overflow-y: auto;
       position: relative;
       text-align: center;
@@ -140,16 +161,6 @@
     .cart-total {
       font-weight: bold;
       margin-top: 1rem;
-    }
-
-    .remove-btn {
-      background: crimson;
-      color: white;
-      padding: 0.3rem 0.5rem;
-      border: none;
-      border-radius: 3px;
-      cursor: pointer;
-      margin-top: 5px;
     }
 
     .close-cart-btn,
@@ -176,6 +187,22 @@
       margin: 0.5rem 0;
       border: 1px solid #ccc;
       border-radius: 5px;
+    }
+
+    @media (max-width: 600px) {
+      .top-bar {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .filters {
+        flex-direction: column;
+      }
+
+      .product img {
+        height: 200px;
+      }
     }
   </style>
 </head>
@@ -215,10 +242,11 @@
   <div class="checkout-box" onclick="event.stopPropagation()">
     <button class="close-checkout-btn" onclick="closeCheckout()">✖</button>
     <h2>Confirm Your Order</h2>
-    <input type="text" id="name" placeholder="Full Name">
-    <input type="text" id="phone" placeholder="Phone Number">
-    <input type="text" id="address" placeholder="Delivery Address">
-    <button class="btn" onclick="submitOrder()">Place Order</button>
+    <input type="text" id="name" placeholder="Full Name" />
+    <input type="text" id="phone" placeholder="Phone Number" />
+    <input type="email" id="email" placeholder="Email Address" />
+    <input type="text" id="address" placeholder="Delivery Address" />
+    <button class="btn" id="submitOrderBtn" onclick="submitOrder(event)">Place Order</button>
   </div>
 </div>
 
@@ -258,11 +286,15 @@
       if (matchesSearch && matchesCategory) {
         const card = document.createElement("div");
         card.className = "product";
+        const safeId = encodeURIComponent(product.name);
+        const buttonClass = isInCart ? "btn btn-remove" : "btn";
+        const buttonText = isInCart ? "Remove from Cart" : "Add to Cart";
+
         card.innerHTML = `
           <img src="${product.image}" alt="${product.name}" />
           <h3>${product.name}</h3>
           <p>R${product.price.toLocaleString()}</p>
-          <button class="btn" id="btn-${product.name.replace(/\s+/g, '')}" onclick="toggleCartItem('${product.name}')">${isInCart ? 'Remove from Cart' : 'Add to Cart'}</button>
+          <button class="${buttonClass}" onclick="toggleCartItem('${product.name}')">${buttonText}</button>
         `;
         grid.appendChild(card);
       }
@@ -323,34 +355,32 @@
     if (cart.length === 0) return alert("Your cart is empty!");
     closeCart();
     document.getElementById("checkoutModal").style.display = "flex";
+    document.getElementById("name").focus();
   }
 
   function closeCheckout() {
     document.getElementById("checkoutModal").style.display = "none";
   }
 
-  function submitOrder() {
+  function submitOrder(event) {
     const name = document.getElementById("name").value.trim();
     const phone = document.getElementById("phone").value.trim();
+    const email = document.getElementById("email").value.trim();
     const address = document.getElementById("address").value.trim();
+    const btn = document.getElementById("submitOrderBtn");
 
-    if (!name || !phone || !address) return alert("Please fill in all fields");
+    if (!name || !phone || !email || !address) return alert("Please fill in all fields");
     if (!/^[0-9]{10,15}$/.test(phone)) return alert("Enter a valid phone number (10-15 digits)");
 
-    fetch("https://daminko-phone-store.onrender.com/order", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({
-    name,
-    phone,
-    address,
-    cart
-  })
-})
+    btn.disabled = true;
+    btn.innerText = "Placing Order...";
 
-    .then(response => response.json())
+    fetch("https://daminko-phone-store.onrender.com/order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, phone, email, address, cart })
+    })
+    .then(res => res.json())
     .then(data => {
       if (data.success) {
         cart = [];
@@ -364,6 +394,10 @@
     .catch(error => {
       console.error("Error:", error);
       alert("Failed to submit order. Please try again later.");
+    })
+    .finally(() => {
+      btn.disabled = false;
+      btn.innerText = "Place Order";
     });
   }
 
@@ -371,6 +405,14 @@
     document.getElementById("confirmation").style.display = "none";
     displayProducts();
   }
+
+  window.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      closeCart();
+      closeCheckout();
+      document.getElementById("confirmation").style.display = "none";
+    }
+  });
 
   displayProducts();
 </script>
