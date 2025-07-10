@@ -337,7 +337,7 @@
     if (!name || !phone || !address) return alert("Please fill in all fields");
     if (!/^[0-9]{10,15}$/.test(phone)) return alert("Enter a valid phone number (10-15 digits)");
 
-    fetch("http://localhost:3000/order", {
+    fetch("https://daminko-phone-store.onrender.com", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
