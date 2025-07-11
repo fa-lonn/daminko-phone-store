@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>DaMinko Phone Store</title>
   <style>
     body {
@@ -70,7 +70,7 @@
     .product {
       background: white;
       border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
       padding: 1rem;
       text-align: center;
     }
@@ -116,22 +116,23 @@
     }
 
     .cart-modal,
-    .confirmation,
-    .checkout-modal {
+    .checkout-modal,
+    .confirmation {
       display: none;
       position: fixed;
-      top: 0; left: 0;
+      top: 0;
+      left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0,0,0,0.5);
+      background: rgba(0, 0, 0, 0.5);
       justify-content: center;
       align-items: center;
       z-index: 1000;
     }
 
     .cart-box,
-    .confirmation-box,
-    .checkout-box {
+    .checkout-box,
+    .confirmation-box {
       background: white;
       padding: 2rem;
       border-radius: 10px;
@@ -141,12 +142,6 @@
       overflow-y: auto;
       position: relative;
       text-align: center;
-    }
-
-    .cart-box h2,
-    .confirmation-box h2,
-    .checkout-box h2 {
-      margin-top: 0;
     }
 
     .cart-item {
@@ -192,7 +187,6 @@
     @media (max-width: 600px) {
       .top-bar {
         flex-direction: column;
-        align-items: center;
         gap: 0.5rem;
       }
 
@@ -208,214 +202,209 @@
 </head>
 <body>
 
-<header>
-  <div class="top-bar">
-    <h2>DaMinko Phone Store</h2>
-    <button class="cart-toggle" onclick="toggleCart()">🛒 Cart (<span id="cartCount">0</span>)</button>
+  <header>
+    <div class="top-bar">
+      <h2>DaMinko Phone Store</h2>
+      <button class="cart-toggle" onclick="toggleCart()">🛒 Cart (<span id="cartCount">0</span>)</button>
+    </div>
+    <div class="filters">
+      <input type="text" id="searchInput" placeholder="Search phones..." onkeyup="filterProducts()" />
+      <select id="categoryFilter" onchange="filterProducts()">
+        <option value="all">All Categories</option>
+        <option value="android">Android</option>
+        <option value="apple">Apple</option>
+        <option value="google">Google</option>
+      </select>
+    </div>
+  </header>
+
+  <div class="product-grid" id="productGrid"></div>
+
+  <div class="cart-modal" id="cartModal" onclick="closeCart()">
+    <div class="cart-box" onclick="event.stopPropagation()">
+      <button class="close-cart-btn" onclick="closeCart()">✖</button>
+      <h2>Your Cart</h2>
+      <div id="cartItems"></div>
+      <div class="cart-total" id="cartTotal">Total: R0</div>
+      <button class="btn checkout-btn" onclick="openCheckout()">Checkout</button>
+    </div>
   </div>
-  <div class="filters">
-    <input type="text" id="searchInput" placeholder="Search phones..." onkeyup="filterProducts()" />
-    <select id="categoryFilter" onchange="filterProducts()">
-      <option value="all">All Categories</option>
-      <option value="android">Android</option>
-      <option value="apple">Apple</option>
-      <option value="google">Google</option>
-    </select>
+
+  <div class="checkout-modal" id="checkoutModal" onclick="closeCheckout()">
+    <div class="checkout-box" onclick="event.stopPropagation()">
+      <button class="close-checkout-btn" onclick="closeCheckout()">✖</button>
+      <h2>Confirm Your Order</h2>
+      <input type="text" id="name" placeholder="Full Name" />
+      <input type="text" id="phone" placeholder="Phone Number" />
+      <input type="email" id="email" placeholder="Email Address" />
+      <input type="text" id="address" placeholder="Delivery Address" />
+      <button class="btn" id="submitOrderBtn" onclick="submitOrder(event)">Place Order</button>
+    </div>
   </div>
-</header>
 
-<div class="product-grid" id="productGrid"></div>
-
-<!-- Cart Modal -->
-<div class="cart-modal" id="cartModal" onclick="closeCart()">
-  <div class="cart-box" onclick="event.stopPropagation()">
-    <button class="close-cart-btn" onclick="closeCart()">✖</button>
-    <h2>Your Cart</h2>
-    <div id="cartItems"></div>
-    <div class="cart-total" id="cartTotal">Total: R0</div>
-    <button class="btn checkout-btn" onclick="openCheckout()">Checkout</button>
+  <div class="confirmation" id="confirmation">
+    <div class="confirmation-box">
+      <h2>🎉 Thank You for Your Order!</h2>
+      <p>Your order has been received. We'll contact you shortly.</p>
+      <button class="btn" onclick="continueShopping()">Continue Shopping</button>
+    </div>
   </div>
-</div>
 
-<!-- Checkout Modal -->
-<div class="checkout-modal" id="checkoutModal" onclick="closeCheckout()">
-  <div class="checkout-box" onclick="event.stopPropagation()">
-    <button class="close-checkout-btn" onclick="closeCheckout()">✖</button>
-    <h2>Confirm Your Order</h2>
-    <input type="text" id="name" placeholder="Full Name" />
-    <input type="text" id="phone" placeholder="Phone Number" />
-    <input type="email" id="email" placeholder="Email Address" />
-    <input type="text" id="address" placeholder="Delivery Address" />
-    <button class="btn" id="submitOrderBtn" onclick="submitOrder(event)">Place Order</button>
-  </div>
-</div>
+  <script>
+    const products = [
+      { name: "Galaxy S24 Ultra", price: 20000, image: "Galaxy S24 Ultra.jpg", category: "android" },
+      { name: "iPhone 15 Pro Max", price: 25000, image: "iPhone 15 Pro Max.png", category: "apple" },
+      { name: "Pixel 8 Pro", price: 18000, image: "Pixel 8 Pro.jpg", category: "google" },
+      { name: "Samsung A34 5G", price: 8000, image: "Samsung A34 5G.jpg", category: "android" },
+      { name: "iPhone SE 2022", price: 10000, image: "iPhone SE 2022.jpg", category: "apple" },
+      { name: "Pixel 7a", price: 12000, image: "Pixel 7a.jpg", category: "google" }
+    ];
 
-<!-- Confirmation Modal -->
-<div class="confirmation" id="confirmation">
-  <div class="confirmation-box">
-    <h2>🎉 Thank You for Your Order!</h2>
-    <p>Your order has been received. We'll contact you shortly.</p>
-    <button class="btn" onclick="continueShopping()">Continue Shopping</button>
-  </div>
-</div>
+    let cart = JSON.parse(localStorage.getItem("cart")) || [];
 
-<script>
-  const products = [
-    { name: "Galaxy S24 Ultra", price: 20000, image: "Galaxy S24 Ultra.jpg", category: "android" },
-    { name: "iPhone 15 Pro Max", price: 25000, image: "iPhone 15 Pro Max.png", category: "apple" },
-    { name: "Pixel 8 Pro", price: 18000, image: "Pixel 8 Pro.jpg", category: "google" },
-    { name: "Samsung A34 5G", price: 8000, image: "Samsung A34 5G.jpg", category: "android" },
-    { name: "iPhone SE 2022", price: 10000, image: "iPhone SE 2022.jpg", category: "apple" },
-    { name: "Pixel 7a", price: 12000, image: "Pixel 7a.jpg", category: "google" }
-  ];
+    function displayProducts() {
+      const grid = document.getElementById("productGrid");
+      grid.innerHTML = "";
 
-  let cart = [];
+      const search = document.getElementById("searchInput").value.toLowerCase();
+      const category = document.getElementById("categoryFilter").value;
 
-  function displayProducts() {
-    const grid = document.getElementById("productGrid");
-    grid.innerHTML = "";
+      products.forEach(product => {
+        const matchesSearch = product.name.toLowerCase().includes(search);
+        const matchesCategory = category === "all" || product.category === category;
+        const isInCart = cart.some(item => item.name === product.name);
 
-    const searchValue = document.getElementById("searchInput").value.toLowerCase();
-    const selectedCategory = document.getElementById("categoryFilter").value;
-
-    products.forEach(product => {
-      const matchesSearch = product.name.toLowerCase().includes(searchValue);
-      const matchesCategory = selectedCategory === "all" || product.category === selectedCategory;
-      const isInCart = cart.some(item => item.name === product.name);
-
-      if (matchesSearch && matchesCategory) {
-        const card = document.createElement("div");
-        card.className = "product";
-        const safeId = encodeURIComponent(product.name);
-        const buttonClass = isInCart ? "btn btn-remove" : "btn";
-        const buttonText = isInCart ? "Remove from Cart" : "Add to Cart";
-
-        card.innerHTML = `
-          <img src="${product.image}" alt="${product.name}" />
-          <h3>${product.name}</h3>
-          <p>R${product.price.toLocaleString()}</p>
-          <button class="${buttonClass}" onclick="toggleCartItem('${product.name}')">${buttonText}</button>
-        `;
-        grid.appendChild(card);
-      }
-    });
-  }
-
-  function filterProducts() {
-    displayProducts();
-  }
-
-  function toggleCartItem(productName) {
-    const index = cart.findIndex(item => item.name === productName);
-    if (index > -1) {
-      cart.splice(index, 1);
-    } else {
-      const product = products.find(p => p.name === productName);
-      cart.push(product);
+        if (matchesSearch && matchesCategory) {
+          const card = document.createElement("div");
+          card.className = "product";
+          card.innerHTML = `
+            <img src="${product.image}" alt="${product.name}" />
+            <h3>${product.name}</h3>
+            <p>R${product.price.toLocaleString()}</p>
+            <button class="${isInCart ? 'btn btn-remove' : 'btn'}"
+              onclick="toggleCartItem('${product.name}')">
+              ${isInCart ? 'Remove from Cart' : 'Add to Cart'}
+            </button>
+          `;
+          grid.appendChild(card);
+        }
+      });
     }
-    updateCart();
-    displayProducts();
-  }
 
-  function updateCart() {
-    const items = document.getElementById("cartItems");
-    items.innerHTML = "";
-    let total = 0;
-
-    cart.forEach((item, index) => {
-      total += item.price;
-      items.innerHTML += `
-        <div class="cart-item">
-          <span>${item.name}</span>
-          <span>R${item.price.toLocaleString()}</span>
-          <button class="remove-btn" onclick="removeFromCart(${index})">Remove</button>
-        </div>
-      `;
-    });
-
-    document.getElementById("cartTotal").innerText = `Total: R${total.toLocaleString()}`;
-    document.getElementById("cartCount").innerText = cart.length;
-  }
-
-  function removeFromCart(index) {
-    cart.splice(index, 1);
-    updateCart();
-    displayProducts();
-  }
-
-  function toggleCart() {
-    document.getElementById("cartModal").style.display = "flex";
-  }
-
-  function closeCart() {
-    document.getElementById("cartModal").style.display = "none";
-  }
-
-  function openCheckout() {
-    if (cart.length === 0) return alert("Your cart is empty!");
-    closeCart();
-    document.getElementById("checkoutModal").style.display = "flex";
-    document.getElementById("name").focus();
-  }
-
-  function closeCheckout() {
-    document.getElementById("checkoutModal").style.display = "none";
-  }
-
-  function submitOrder(event) {
-    const name = document.getElementById("name").value.trim();
-    const phone = document.getElementById("phone").value.trim();
-    const email = document.getElementById("email").value.trim();
-    const address = document.getElementById("address").value.trim();
-    const btn = document.getElementById("submitOrderBtn");
-
-    if (!name || !phone || !email || !address) return alert("Please fill in all fields");
-    if (!/^[0-9]{10,15}$/.test(phone)) return alert("Enter a valid phone number (10-15 digits)");
-
-    btn.disabled = true;
-    btn.innerText = "Placing Order...";
-
-    fetch("https://daminko-phone-store.onrender.com/order", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, phone, email, address, cart })
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        cart = [];
-        updateCart();
-        closeCheckout();
-        document.getElementById("confirmation").style.display = "flex";
+    function toggleCartItem(name) {
+      const index = cart.findIndex(item => item.name === name);
+      if (index > -1) {
+        cart.splice(index, 1);
       } else {
-        alert("Something went wrong: " + data.message);
+        const product = products.find(p => p.name === name);
+        cart.push(product);
       }
-    })
-    .catch(error => {
-      console.error("Error:", error);
-      alert("Failed to submit order. Please try again later.");
-    })
-    .finally(() => {
-      btn.disabled = false;
-      btn.innerText = "Place Order";
-    });
-  }
-
-  function continueShopping() {
-    document.getElementById("confirmation").style.display = "none";
-    displayProducts();
-  }
-
-  window.addEventListener('keydown', e => {
-    if (e.key === 'Escape') {
-      closeCart();
-      closeCheckout();
-      document.getElementById("confirmation").style.display = "none";
+      updateCart();
+      displayProducts();
     }
-  });
 
-  displayProducts();
-</script>
+    function updateCart() {
+      const cartItems = document.getElementById("cartItems");
+      cartItems.innerHTML = "";
+      let total = 0;
 
+      cart.forEach((item, index) => {
+        total += item.price;
+        cartItems.innerHTML += `
+          <div class="cart-item">
+            <span>${item.name}</span>
+            <span>R${item.price.toLocaleString()}</span>
+            <button class="remove-btn" onclick="removeFromCart(${index})">Remove</button>
+          </div>
+        `;
+      });
+
+      document.getElementById("cartTotal").innerText = `Total: R${total.toLocaleString()}`;
+      document.getElementById("cartCount").innerText = cart.length;
+
+      localStorage.setItem("cart", JSON.stringify(cart));
+    }
+
+    function removeFromCart(index) {
+      cart.splice(index, 1);
+      updateCart();
+      displayProducts();
+    }
+
+    function toggleCart() {
+      document.getElementById("cartModal").style.display = "flex";
+    }
+
+    function closeCart() {
+      document.getElementById("cartModal").style.display = "none";
+    }
+
+    function openCheckout() {
+      if (cart.length === 0) return alert("Your cart is empty!");
+      closeCart();
+      document.getElementById("checkoutModal").style.display = "flex";
+      document.getElementById("name").focus();
+    }
+
+    function closeCheckout() {
+      document.getElementById("checkoutModal").style.display = "none";
+    }
+
+    function submitOrder(event) {
+      const name = document.getElementById("name").value.trim();
+      const phone = document.getElementById("phone").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const address = document.getElementById("address").value.trim();
+      const btn = document.getElementById("submitOrderBtn");
+
+      if (!name || !phone || !email || !address) return alert("Please fill in all fields");
+      if (!/^[0-9]{10,15}$/.test(phone)) return alert("Enter a valid phone number");
+
+      btn.disabled = true;
+      btn.innerText = "Placing Order...";
+
+      fetch("https://daminko-phone-store.onrender.com/order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, phone, email, address, cart })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          cart = [];
+          localStorage.removeItem("cart");
+          updateCart();
+          closeCheckout();
+          document.getElementById("confirmation").style.display = "flex";
+        } else {
+          alert("Something went wrong: " + data.message);
+        }
+      })
+      .catch(error => {
+        console.error("Error:", error);
+        alert("Order failed. Try again later.");
+      })
+      .finally(() => {
+        btn.disabled = false;
+        btn.innerText = "Place Order";
+      });
+    }
+
+    function continueShopping() {
+      document.getElementById("confirmation").style.display = "none";
+      displayProducts();
+    }
+
+    window.addEventListener("keydown", e => {
+      if (e.key === "Escape") {
+        closeCart();
+        closeCheckout();
+        document.getElementById("confirmation").style.display = "none";
+      }
+    });
+
+    displayProducts();
+    updateCart(); // Load cart state from localStorage on page load
+  </script>
 </body>
 </html>
